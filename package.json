@@ -7,8 +7,8 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/raycaster.umd.cjs",
-  "module": "./dist/raycaster.js",
+  "main": "./dist/react-raycaster.umd.cjs",
+  "module": "./dist/react-raycaster.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "vite build",
