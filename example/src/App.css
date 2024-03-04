@@ -1,0 +1,45 @@
+@font-face {
+  font-family: Pixeled;
+  src: url(./assets/Pixeled.ttf);
+}
+
+html,
+body {
+    width: 100%;
+    margin: 0;
+    background: #2d2d2d;
+    color: white;
+    text-align: center;
+    font-family: Pixeled;
+}
+
+a {
+    color: white;
+}
+
+canvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+form {
+    position: fixed;
+    display: block;
+    text-align: left;
+    padding: 10px;
+}
+form div{
+    padding: 5px;
+}
+
+form input {
+    margin-left: 15px;
+}
+
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}

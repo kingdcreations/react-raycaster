@@ -1,0 +1,133 @@
+import { useState } from 'react';
+import { FaAdjust, FaGripLinesVertical } from "react-icons/fa";
+
+import obsidian from "./assets/tex/obsidian.png"
+import oakPlanks from "./assets/tex/oak_planks.png"
+import barrel from "./assets/tex/barrel.png"
+import pillar from "./assets/tex/pillar.png"
+import wood from "./assets/tex/wood.png"
+import skybox from "./assets/tex/cubemap.png"
+
+import Raycaster from "../../src"
+
+import './App.css'
+import { FaArrowDown19 } from 'react-icons/fa6';
+
+function App() {
+  const [raystep, setRaystep] = useState(2)
+  const [shadows, setShadows] = useState(true)
+  const [showFPS, setShowFPS] = useState(false)
+
+  const map = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 5, 0, 5, 0, 5, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 2, 2, 6, 2, 2, 0, 0, 0, 0, 5, 0, 5, 0, 5, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 4, 4, 4, 4, 4, 4, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 4, 0, 0, 0, 0, 2, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 4, 0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 4, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+  ];
+
+  return (
+    <div>
+      <Raycaster
+        showFPS={showFPS}
+        map={map}
+        raystep={raystep}
+        width={1000}
+        height={600}
+        // ceiling={oakPlanks}
+        floor={oakPlanks}
+        skybox={skybox}
+        shadows={shadows}
+        objects={{
+          1: {
+            type: "wall",
+            src: obsidian,
+            collision: true,
+          },
+          2: {
+            type: "wall",
+            src: oakPlanks,
+            collision: true,
+          },
+          3: {
+            type: "sprite",
+            src: barrel,
+            collision: true,
+          },
+          4: {
+            type: "wall",
+            src: obsidian,
+            collision: true,
+          },
+          5: {
+            type: "sprite",
+            src: pillar,
+            collision: true,
+          },
+          6: {
+            type: "door",
+            src: wood,
+            collision: true,
+          }
+        }}
+      />
+
+      <form>
+        <div>
+          <label htmlFor="quality"><FaGripLinesVertical /></label>
+          <input
+            min={1}
+            max={5}
+            type="range"
+            value={raystep}
+            onChange={(e) => setRaystep(parseInt(e.target.value))}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="shadows"><FaAdjust /></label>
+          <input
+            type="checkbox"
+            checked={shadows}
+            onChange={() => setShadows(!shadows)}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="quality"><FaArrowDown19 /></label>
+          <input
+            type="checkbox"
+            checked={showFPS}
+            onChange={() => setShowFPS(!showFPS)}
+          />
+        </div>
+      </form>
+
+      <footer>
+        <p>© 2024 <a href="https://thais-marcon.com">Thaïs Marcon</a></p>
+        <p>Using <a href="https://lodev.org/cgtutor/raycasting.html">Lodev's RayCast solution</a></p>
+      </footer>
+    </div>
+  )
+}
+
+export default App
