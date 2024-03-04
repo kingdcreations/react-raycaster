@@ -1,6 +1,6 @@
 import { CanvasHTMLAttributes, useEffect, useMemo, useRef, useState } from "react";
-import Game from "./classes/Game";
-import RaycastType, { Door, SortedSprite, Sprite } from "./types/RaycastTypes";
+import Game from "../classes/Game";
+import RaycastType, { Door, SortedSprite, Sprite } from "../types/RaycastTypes";
 
 export default function Raycaster({
     map,
