@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FaAdjust, FaGripLinesVertical } from "react-icons/fa";
+import { FaArrowDown19 } from 'react-icons/fa6';
 
 import obsidian from "./assets/tex/obsidian.png"
 import oakPlanks from "./assets/tex/oak_planks.png"
@@ -8,10 +9,9 @@ import pillar from "./assets/tex/pillar.png"
 import wood from "./assets/tex/wood.png"
 import skybox from "./assets/tex/cubemap.png"
 
-import Raycaster from "../../src"
+import Raycaster from "../../dist"
 
 import './App.css'
-import { FaArrowDown19 } from 'react-icons/fa6';
 
 function App() {
   const [raystep, setRaystep] = useState(2)
@@ -124,7 +124,7 @@ function App() {
 
       <footer>
         <p>© 2024 <a href="https://thais-marcon.com">Thaïs Marcon</a></p>
-        <p>Using <a href="https://lodev.org/cgtutor/raycasting.html">Lodev's RayCast solution</a></p>
+        <p>Github: <a href="https://github.com/kingdcreations/react-raycaster">react-raycaster</a></p>
       </footer>
     </div>
   )

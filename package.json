@@ -1,20 +1,37 @@
 {
   "name": "react-raycaster",
-  "author": "Thais Marcon",
+  "private": false,
+  "author": "Thais Marcon <mthais.web@gmail.com> (https://thais-marcon.com/)",
+  "repository": "https://github.com/kingdcreations/react-raycaster",
+  "homepage": "https://github.com/kingdcreations/react-raycaster#readme",
   "license": "MIT",
   "version": "0.0.0",
   "type": "module",
+  "main": "./dist/index.umd.cjs",
+  "module": "./dist/index.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "files": [
     "dist"
   ],
-  "main": "./dist/react-raycaster.umd.cjs",
-  "module": "./dist/react-raycaster.js",
-  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "vite build",
+    "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
+  "keywords": [
+    "react",
+    "raycaster",
+    "raycasting",
+    "game",
+    "engine"
+  ],
   "peerDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
