@@ -1,6 +1,6 @@
-![](https://github.com/kingdcreations/react-raycaster/blob/main/docs/thumbnail.png?raw=true)
+[![banner](https://github.com/kingdcreations/react-raycaster/blob/main/docs/thumbnail.png?raw=true)](https://thais-marcon.com/raycasting)
 
-# react-raycaster
+# React Raycaster (react-raycaster)
 [![npm version](https://badge.fury.io/js/react-raycaster.svg)](https://badge.fury.io/js/react-raycaster)
 
 A fully customizable raycaster game engine as a React component.
