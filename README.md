@@ -1,4 +1,11 @@
-# React Raycaster
+![](https://github.com/kingdcreations/react-raycaster/blob/main/docs/thumbnail.png?raw=true)
+
+# react-raycaster
+[![npm version](https://badge.fury.io/js/react-raycaster.svg)](https://badge.fury.io/js/react-raycaster)
+
+A fully customizable raycaster game engine as a React component.
+
+Check out a cool example [here](https://thais-marcon.com/raycasting).
 
 ## Installation
 
@@ -113,6 +120,18 @@ const tiles = {
 - Add moving sprites
 - Add different walls height
 - Add pitch and offset
+- Add a way to set custom game inputs
+
+## About
+
+I discovered raycasting as a project from 42 in C, this project is inspired by the world-famous Wolfenstein3D game, which was the first FPS ever.
+
+Here is some useful links:
+
+- http://wolf3d.atw.hu/ (Original Wolfenstein 3D online)
+- https://lodev.org/cgtutor/raycasting.html (The main tutorial and code inspiration)
+- https://thais-marcon.com/raycasting/ (An example of this component in use online)
+- https://github.com/kingdcreations/cub3d (My 42 project in C)
 
 ## License
 
