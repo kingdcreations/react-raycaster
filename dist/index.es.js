@@ -877,6 +877,6 @@ function Er({
   }, ref: Me, width: E, height: P, ...ae });
 }
 export {
-  Er as Raycaster
+  Er as default
 };
 //# sourceMappingURL=index.es.js.map

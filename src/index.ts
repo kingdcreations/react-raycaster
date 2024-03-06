@@ -1,1 +1,3 @@
-export { default as Raycaster } from "./components/Raycaster";
+import Raycaster from "./components/Raycaster";
+
+export default Raycaster

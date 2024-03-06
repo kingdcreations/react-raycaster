@@ -1,27 +1,27 @@
-import { CanvasHTMLAttributes, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Game from "../classes/Game";
-import RaycastType, { Door, SortedSprite, Sprite } from "../types/RaycastTypes";
+import { RaycastType, SortedSprite, Sprite } from "../types/RaycastTypes";
 
 export default function Raycaster({
     map,
+    player,
     raystep = 2,
-    shadows = true,
+    shading = true,
     showFPS = false,
     width = window.innerWidth,
     height = window.innerHeight,
-    objects,
+    tiles,
     skybox,
     ceiling,
     floor,
     speed = 15,
     rotSpeed = 2.5,
-    ...props
-}: RaycastType & CanvasHTMLAttributes<HTMLCanvasElement>) {
+}: RaycastType) {
     width = Math.min(window.innerWidth, width);
     height = Math.min(window.innerHeight, height);
     const w = Math.floor(width / raystep);
     const h = Math.floor(height / raystep);
-    const halfH = h / 2;
+    const middle = h * 0.5;
 
     speed /= 100
     rotSpeed /= 100
@@ -33,7 +33,7 @@ export default function Raycaster({
     const id = ctx?.createImageData(w, h);
     const d = id?.data;
 
-    const game = useMemo(() => new Game(w, h), [h, w])
+    const g = useMemo(() => new Game(map, tiles, player, w, h), [map, tiles, player, w, h])
 
     const [images, setImages] = useState<HTMLImageElement[]>([])
     const [skyboxImage, setSkyboxImage] = useState<HTMLImageElement>()
@@ -46,101 +46,39 @@ export default function Raycaster({
     const z = Array(w);
     const [sprites, setSprites] = useState<Sprite[]>([]);
 
-    // Get doors from map
-    const doors: Door = Array.from(Array(map.length), () => Array(map[0].length).fill(0));
-
     // Main loop
-    const loop = setInterval(() => {
-        const mouvement = game.up + game.down
-        if (mouvement && objects) {
-            const collideX = map[Math.floor(game.px + game.dirx * mouvement)][Math.floor(game.py)]
-            const doorStateX = doors[Math.floor(game.px + game.dirx * mouvement)][Math.floor(game.py)]
-            if (collideX === 0 || !objects[collideX].collision || doorStateX === 1)
-                game.px += game.dirx * mouvement
-
-            const collideY = map[Math.floor(game.px)][Math.floor(game.py + game.diry * mouvement)]
-            const doorStateY = doors[Math.floor(game.px)][Math.floor(game.py + game.diry * mouvement)]
-            if (collideY === 0 || !objects[collideY].collision || doorStateY === 1)
-                game.py += game.diry * mouvement
-        }
-
-        const rotation = -(game.left + game.right)
-        if (rotation) {
-            const olddirx = game.dirx;
-            game.dirx = game.dirx * Math.cos(rotation) - game.diry * Math.sin(rotation);
-            game.diry = olddirx * Math.sin(rotation) + game.diry * Math.cos(rotation);
-            const oldplanex = game.planex;
-            game.planex = game.planex * Math.cos(rotation) - game.planey * Math.sin(rotation);
-            game.planey = oldplanex * Math.sin(rotation) + game.planey * Math.cos(rotation);
-        }
-
-        if (game.action) checkDoor()
-
-        redraw();
-    }, 1000 / 60)
-
-    const openDoor = (x: number, y: number) => {
-        let timer = 0;
-        let state = "opening"
-
-        const loop = setInterval(() => {
-            if (doors[x][y] < 1 && state === "opening")
-                doors[x][y] += 0.025
-            else {
-                timer++;
-                state = "open"
-                doors[x][y] = 1
-
-                if (timer >= 60 * 3 && getMapType(Math.floor(game.px), Math.floor(game.py)) !== "door") {
-                    clearInterval(loop)
-                    state = "closing"
-                    closeDoor(x, y)
-                }
-            }
-        }, 1000 / 60)
-    }
-
-    const closeDoor = (x: number, y: number) => {
-        const loop = setInterval(() => {
-            if (doors[x][y] > 0)
-                doors[x][y] -= 0.025
-            else {
-                doors[x][y] = 0
-                clearInterval(loop)
-            }
-        }, 1000 / 60)
-    }
-
-    const getMapType = (x: number, y: number) => {
-        if (objects && objects[map[x][y]])
-            return objects[map[x][y]].type
-        else return null
-    }
-
-    const checkDoor = () => {
-        const checkMapX = Math.floor(game.px + game.dirx);
-        const checkMapY = Math.floor(game.py + game.diry);
-
-        const checkMapX2 = Math.floor(game.px + game.dirx * 2);
-        const checkMapY2 = Math.floor(game.py + game.diry * 2);
-
-        if (getMapType(checkMapX, checkMapY) === "door" && doors[checkMapX][checkMapY] === 0)
-            openDoor(checkMapX, checkMapY)
-
-        if (getMapType(checkMapX2, checkMapY2) === "door" && doors[checkMapX2][checkMapY2] === 0)
-            openDoor(checkMapX2, checkMapY2)
-
-        if (getMapType(Math.floor(game.px), Math.floor(game.py)) === "door")
-            openDoor(Math.floor(game.px), Math.floor(game.py))
-    }
-
-    const redraw = () => window.requestAnimationFrame(() => {
+    const loop = setInterval(() => window.requestAnimationFrame(() => {
         if (showFPS) {
             const now = performance.now();
             while (times.length > 0 && times[0] <= now - 1000)
                 times.shift()
             times.push(now);
         }
+
+        const mouvement = g.up + g.down
+        if (mouvement && tiles) {
+            const collideX = g.map[Math.floor(g.pX + g.dirX * mouvement)][Math.floor(g.pY)]
+            const doorStateX = g.doors[Math.floor(g.pX + g.dirX * mouvement)][Math.floor(g.pY)]
+            if (collideX === 0 || !tiles[collideX].collision || doorStateX === 1)
+                g.pX += g.dirX * mouvement
+
+            const collideY = g.map[Math.floor(g.pX)][Math.floor(g.pY + g.dirY * mouvement)]
+            const doorStateY = g.doors[Math.floor(g.pX)][Math.floor(g.pY + g.dirY * mouvement)]
+            if (collideY === 0 || !tiles[collideY].collision || doorStateY === 1)
+                g.pY += g.dirY * mouvement
+        }
+
+        const rotation = -(g.left + g.right)
+        if (rotation) {
+            const olddirX = g.dirX;
+            g.dirX = g.dirX * Math.cos(rotation) - g.dirY * Math.sin(rotation);
+            g.dirY = olddirX * Math.sin(rotation) + g.dirY * Math.cos(rotation);
+            const oldplaneX = g.planeX;
+            g.planeX = g.planeX * Math.cos(rotation) - g.planeY * Math.sin(rotation);
+            g.planeY = oldplaneX * Math.sin(rotation) + g.planeY * Math.cos(rotation);
+        }
+
+        g.checkDoor()
 
         clear();
         floorcast();
@@ -151,7 +89,7 @@ export default function Raycaster({
         spritecast();
 
         if (showFPS) ctx?.fillText(times.length.toString(), w / 50, h / 15 + 12);
-    });
+    }), 1000 / 60)
 
     const clear = () => d?.fill(0)
 
@@ -159,12 +97,12 @@ export default function Raycaster({
         if (!skyboxImage) return
 
         const skyWidth = w * 4
-        const angle = Math.atan2(game.diry, game.dirx) / Math.PI + 1;
+        const angle = Math.atan2(g.dirY, g.dirX) / Math.PI + 1;
         const pan = Math.floor(angle * w * 2);
 
         if (ctx) {
-            ctx.drawImage(skyboxImage, 0, 0, skyboxImage.width, skyboxImage.height / 2, pan, 0, skyWidth, halfH);
-            ctx.drawImage(skyboxImage, 0, 0, skyboxImage.width, skyboxImage.height / 2, pan - skyWidth, 0, skyWidth, halfH);
+            ctx.drawImage(skyboxImage, 0, 0, skyboxImage.width, skyboxImage.height / 2, pan, 0, skyWidth, middle);
+            ctx.drawImage(skyboxImage, 0, 0, skyboxImage.width, skyboxImage.height / 2, pan - skyWidth, 0, skyWidth, middle);
         }
     }
 
@@ -176,7 +114,7 @@ export default function Raycaster({
         sprites.forEach((s, i) => {
             sortedSprites.push({
                 ...s,
-                distance: (game.px - sprites[i].x) * (game.px - sprites[i].x) + (game.py - sprites[i].y) * (game.py - sprites[i].y)
+                distance: (g.pX - sprites[i].x) * (g.pX - sprites[i].x) + (g.pY - sprites[i].y) * (g.pY - sprites[i].y)
             })
         })
 
@@ -185,22 +123,22 @@ export default function Raycaster({
             .forEach(s => {
 
                 // Translate sprite position to relative to camera
-                const spx = s.x - game.px;
-                const spy = s.y - game.py;
+                const spX = s.x - g.pX;
+                const spY = s.y - g.pY;
 
                 // Transform sprite with the inverse camera matrix
-                const invert = 1 / (game.planex * game.diry - game.planey * game.dirx);
-                const transformX = invert * (game.diry * spx - game.dirx * spy);
-                const transformY = invert * (-game.planey * spx + game.planex * spy);
+                const invert = 1 / (g.planeX * g.dirY - g.planeY * g.dirX);
+                const transformX = invert * (g.dirY * spX - g.dirX * spY);
+                const transformY = invert * (-g.planeY * spX + g.planeX * spY);
 
-                if (transformY > 0) {
+                if (transformY > 0.001) {
 
                     const spriteScreenX = Math.floor((w / 2) * (1 + transformX / transformY));
 
                     // Calculate height of the sprite
                     const spriteHeight = Math.abs(Math.floor(h / transformY)); // Using 'transformY' to prevents fisheye
 
-                    const drawStartY = Math.floor(-spriteHeight / 2 + h / 2);
+                    const drawStartY = Math.floor(-spriteHeight / 2 + middle);
 
                     // Calculate width of the sprite
                     const spriteWidth = Math.abs(Math.floor(h / transformY));
@@ -213,7 +151,7 @@ export default function Raycaster({
                     if (drawStartX < -spriteWidth) drawStartX = -spriteWidth;
                     if (drawEndX > w + spriteWidth) drawEndX = drawEndX = w + spriteWidth;
 
-                    const tex = images[s.object]
+                    const tex = images[s.tile]
 
                     // Loop through every vertical stripe of the sprite on screen
                     for (let stripe = drawStartX; stripe <= drawEndX; stripe++) {
@@ -240,7 +178,7 @@ export default function Raycaster({
                         let drawWidth = clipEndX - clipStartX;
                         if (drawWidth < 0) drawWidth = 0;
 
-                        ctx.drawImage(images[s.object], drawStartX, 0, drawEndX, tex.height, clipStartX, drawStartY, drawWidth, spriteHeight);
+                        ctx.drawImage(images[s.tile], drawStartX, 0, drawEndX, tex.height, clipStartX, drawStartY, drawWidth, spriteHeight);
                     }
                 }
             })
@@ -253,12 +191,12 @@ export default function Raycaster({
 
             // Calculate ray position and direction
             const camx = 2 * x / w - 1;
-            const rayDistX = game.dirx + game.planex * camx;
-            const rayDistY = game.diry + game.planey * camx;
+            const rayDistX = g.dirX + g.planeX * camx;
+            const rayDistY = g.dirY + g.planeY * camx;
 
             // Box of the map we're in
-            let mapx = Math.floor(game.px);
-            let mapy = Math.floor(game.py);
+            let mapX = Math.floor(g.pX);
+            let mapY = Math.floor(g.pY);
 
             // Length of the ray from current position to next x or y-side
             let sideDistX;
@@ -282,18 +220,18 @@ export default function Raycaster({
             // Calculate step and initial sideDist
             if (rayDistX < 0) {
                 stepX = -1;
-                sideDistX = (game.px - mapx) * ddx;
+                sideDistX = (g.pX - mapX) * ddx;
             } else {
                 stepX = 1;
-                sideDistX = (mapx + 1.0 - game.px) * ddx;
+                sideDistX = (mapX + 1.0 - g.pX) * ddx;
             }
 
             if (rayDistY < 0) {
                 stepY = -1;
-                sideDistY = (game.py - mapy) * ddy;
+                sideDistY = (g.pY - mapY) * ddy;
             } else {
                 stepY = 1;
-                sideDistY = (mapy + 1.0 - game.py) * ddy;
+                sideDistY = (mapY + 1.0 - g.pY) * ddy;
             }
 
             // DDA
@@ -302,29 +240,29 @@ export default function Raycaster({
                 // Jump to next map square, either in x-direction, or in y-direction
                 if (sideDistX < sideDistY) {
                     sideDistX += ddx;
-                    mapx += stepX;
+                    mapX += stepX;
                     side = 0;
                 } else {
                     sideDistY += ddy;
-                    mapy += stepY;
+                    mapY += stepY;
                     side = 1;
                 }
 
                 let wx
-                const mapPos = map[mapx][mapy]
+                const mapPos = g.map[mapX][mapY]
                 // Check if ray has hit a wall
-                if (map[mapx][mapy] > 0) {
-                    if (objects && objects[mapPos].type === "wall")
+                if (g.map[mapX][mapY] > 0) {
+                    if (tiles && tiles[mapPos].type === "wall")
                         hit = 1;
-                    else if (objects && objects[mapPos].type === "door") {
+                    else if (tiles && tiles[mapPos].type === "door") {
                         hit = 1;
                         if (side == 1) {
                             wallYOffset = 0.5 * stepY;
-                            perpWallD = (mapy - game.py + wallYOffset + (1 - stepY) / 2) / rayDistY;
-                            wx = game.px + perpWallD * rayDistX;
+                            perpWallD = (mapY - g.pY + wallYOffset + (1 - stepY) / 2) / rayDistY;
+                            wx = g.pX + perpWallD * rayDistX;
                             wx -= Math.floor(wx);
                             if (sideDistY - (ddy / 2) < sideDistX) { //If ray hits offset wall
-                                if (1.0 - wx <= doors[mapx][mapy]) {
+                                if (1.0 - wx <= g.doors[mapX][mapY]) {
                                     hit = 0; //Continue raycast for open/opening doors
                                     wallYOffset = 0
                                 }
@@ -335,11 +273,11 @@ export default function Raycaster({
                             }
                         } else {
                             wallXOffset = 0.5 * stepX;
-                            perpWallD = (mapx - game.px + wallXOffset + (1 - stepX) / 2) / rayDistX;
-                            wx = game.py + perpWallD * rayDistY;
+                            perpWallD = (mapX - g.pX + wallXOffset + (1 - stepX) / 2) / rayDistX;
+                            wx = g.pY + perpWallD * rayDistY;
                             wx -= Math.floor(wx);
                             if (sideDistX - (ddx / 2) < sideDistY) { //If ray hits offset wall
-                                if (1.0 - wx <= doors[mapx][mapy]) {
+                                if (1.0 - wx <= g.doors[mapX][mapY]) {
                                     hit = 0; //Continue raycast for open/opening doors
                                     wallXOffset = 0
                                 }
@@ -354,26 +292,26 @@ export default function Raycaster({
             }
 
             // Calculate distance of perpendicular ray (Euclidean distance would give fisheye effect!)
-            if (side === 0) perpWallD = (mapx - game.px + wallXOffset + (1 - stepX) * 0.5) / rayDistX;
-            else perpWallD = (mapy - game.py + wallYOffset + (1 - stepY) * 0.5) / rayDistY;
+            if (side === 0) perpWallD = (mapX - g.pX + wallXOffset + (1 - stepX) * 0.5) / rayDistX;
+            else perpWallD = (mapY - g.pY + wallYOffset + (1 - stepY) * 0.5) / rayDistY;
 
             // Calculate height of line to draw on screen
             const lineHeight = Math.floor(h / perpWallD);
 
             // Calculate lowest and highest pixel to fill in current stripe
-            const drawStart = -lineHeight * 0.5 + h * 0.5;
+            const drawStart = -lineHeight * 0.5 + middle;
 
-            const texture = images[map[mapx][mapy] - 1];
+            const texture = images[g.map[mapX][mapY] - 1];
 
             // Calculate value of wallX
             let wallX;
-            if (side === 0) wallX = game.py + perpWallD * rayDistY;
-            else wallX = game.px + perpWallD * rayDistX;
+            if (side === 0) wallX = g.pY + perpWallD * rayDistY;
+            else wallX = g.pX + perpWallD * rayDistX;
             wallX -= Math.floor(wallX);
 
             // Calculate door offset
-            if (objects && objects[map[mapx][mapy]].type === "door")
-                wallX += doors[mapx][mapy];
+            if (tiles && tiles[g.map[mapX][mapY]].type === "door")
+                wallX += g.doors[mapX][mapY];
 
             // x coordinate on the texture
             let texX = Math.floor(wallX * texture.width);
@@ -383,7 +321,7 @@ export default function Raycaster({
             if (ctx) {
                 ctx.drawImage(texture, texX, 0, 1, texture.height, x, drawStart, 1, lineHeight);
 
-                if (shadows) {
+                if (shading) {
                     ctx.save()
                     const shade = perpWallD * 0.020 + side / 10;
                     ctx.fillStyle = "rgba(0, 0, 0, " + shade + ")";
@@ -403,10 +341,10 @@ export default function Raycaster({
 
         const middle = 0.5 * h;
         for (let y = 0; y < h; y++) {
-            const rayDistX0 = game.dirx - game.planex;
-            const rayDistY0 = game.diry - game.planey;
-            const rayDistX1 = game.dirx + game.planex;
-            const rayDistY1 = game.diry + game.planey;
+            const rayDistX0 = g.dirX - g.planeX;
+            const rayDistY0 = g.dirY - g.planeY;
+            const rayDistX1 = g.dirX + g.planeX;
+            const rayDistY1 = g.dirY + g.planeY;
 
             const p = Math.floor(y - middle);
             const rowDistance = middle / p;
@@ -414,10 +352,10 @@ export default function Raycaster({
             const fstepX = rowDistance * (rayDistX1 - rayDistX0) / w;
             const fstepY = rowDistance * (rayDistY1 - rayDistY0) / w;
 
-            let floorX = game.px + rowDistance * rayDistX0;
-            let floorY = game.py + rowDistance * rayDistY0;
+            let floorX = g.pX + rowDistance * rayDistX0;
+            let floorY = g.pY + rowDistance * rayDistY0;
 
-            const shade = shadows ? y / h : 1
+            const shade = shading ? y / h : 1
             for (let x = 0; x < w; ++x) {
                 if (p > 0) {
                     const cellX = Math.floor(floorX);
@@ -460,26 +398,26 @@ export default function Raycaster({
     useEffect(() => {
         if (ctx) {
             ctx.fillStyle = "red"
-            ctx.font = "24px Arial"
+            ctx.font = "24pX Arial"
             ctx.imageSmoothingEnabled = false;
         }
     }, [ctx, raystep])
 
-    // Objects initialization
+    // Tiles initialization
     useEffect(() => {
-        if (objects) {
-            const objectsArray = Object.values(objects)
-            const imgArr = new Array(objectsArray.length);
-            objectsArray.forEach((o, i) => {
+        if (tiles) {
+            const tilesArray = Object.values(tiles)
+            const imgArr = new Array(tilesArray.length);
+            tilesArray.forEach((o, i) => {
                 const image = new Image();
                 image.onload = () => imgArr[i] = image
-                image.src = o.src;
                 image.crossOrigin = "Anonymous";
+                image.src = o.src + "?not-from-cache-please";
             })
             setImages(imgArr)
         }
         else setImages([]);
-    }, [objects])
+    }, [tiles])
 
     // Skybox initialization
     useEffect(() => {
@@ -525,14 +463,14 @@ export default function Raycaster({
     // Get sprites from map
     useEffect(() => {
         const s: Sprite[] = []
-        objects && map.forEach((row, x) => {
+        tiles && map.forEach((row, x) => {
             row.forEach((tile, y) => {
-                if (objects[tile]?.type === "sprite")
-                    s.push({ x: x + 0.5, y: y + 0.5, object: tile - 1 })
+                if (tiles[tile]?.type === "sprite")
+                    s.push({ x: x + 0.5, y: y + 0.5, tile: tile - 1 })
             })
         })
         setSprites(s)
-    }, [map, objects])
+    }, [map, tiles])
 
     // Handle inputs events
     useEffect(() => {
@@ -541,19 +479,19 @@ export default function Raycaster({
         const onKeyDown = (e: KeyboardEvent) => {
             switch (e.key) {
                 case 'z':
-                    game.up = speed
+                    g.up = speed
                     break;
                 case 'd':
-                    game.right = rotSpeed
+                    g.right = rotSpeed
                     break;
                 case 's':
-                    game.down = -speed
+                    g.down = -speed
                     break;
                 case 'q':
-                    game.left = -rotSpeed
+                    g.left = -rotSpeed
                     break;
                 case ' ':
-                    game.action = true
+                    g.action = true
                     break;
                 default:
                     break;
@@ -563,19 +501,19 @@ export default function Raycaster({
         const onKeyUp = (e: KeyboardEvent) => {
             switch (e.key) {
                 case 'z':
-                    game.up = 0
+                    g.up = 0
                     break;
                 case 'd':
-                    game.right = 0
+                    g.right = 0
                     break;
                 case 's':
-                    game.down = 0
+                    g.down = 0
                     break;
                 case 'q':
-                    game.left = 0
+                    g.left = 0
                     break;
                 case ' ':
-                    game.action = false
+                    g.action = false
                     break;
                 default:
                     break;
@@ -590,13 +528,17 @@ export default function Raycaster({
             removeEventListener('keyup', onKeyUp)
             clearInterval(loop)
         }
-    }, [game, loop, rotSpeed, speed])
+    }, [g, loop, rotSpeed, speed])
 
     return (
-        <canvas style={{
-            width,
-            height,
-            imageRendering: "pixelated"
-        }} ref={canvasRef} width={w} height={h} {...props} />
+        <canvas
+            width={w}
+            height={h}
+            ref={canvasRef}
+            style={{
+                width,
+                height,
+                imageRendering: "pixelated"
+            }} />
     )
 }

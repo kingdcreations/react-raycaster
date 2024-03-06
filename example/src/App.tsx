@@ -1,6 +1,8 @@
+import './App.css'
+
 import { useState } from 'react';
-import { FaAdjust, FaGripLinesVertical } from "react-icons/fa";
-import { FaArrowDown19 } from 'react-icons/fa6';
+import { FaAdjust } from "react-icons/fa";
+import { FaArrowDown19, FaGripLinesVertical } from 'react-icons/fa6';
 
 import obsidian from "./assets/tex/obsidian.png"
 import oakPlanks from "./assets/tex/oak_planks.png"
@@ -9,13 +11,11 @@ import pillar from "./assets/tex/pillar.png"
 import wood from "./assets/tex/wood.png"
 import skybox from "./assets/tex/cubemap.png"
 
-import Raycaster from "../../dist"
-
-import './App.css'
+import Raycaster from '../../src';
 
 function App() {
   const [raystep, setRaystep] = useState(2)
-  const [shadows, setShadows] = useState(true)
+  const [shading, setShading] = useState(true)
   const [showFPS, setShowFPS] = useState(false)
 
   const map = [
@@ -53,11 +53,14 @@ function App() {
         raystep={raystep}
         width={1000}
         height={600}
-        // ceiling={oakPlanks}
         floor={oakPlanks}
         skybox={skybox}
-        shadows={shadows}
-        objects={{
+        shading={shading}
+        player={{
+          x: 15,
+          y: 8,
+        }}
+        tiles={{
           1: {
             type: "wall",
             src: obsidian,
@@ -93,31 +96,37 @@ function App() {
 
       <form>
         <div>
-          <label htmlFor="quality"><FaGripLinesVertical /></label>
+          <label htmlFor="raystep"><FaGripLinesVertical /></label>
           <input
             min={1}
             max={5}
             type="range"
             value={raystep}
             onChange={(e) => setRaystep(parseInt(e.target.value))}
+            id="raystep"
+            aria-label="Raystep"
           />
         </div>
 
         <div>
-          <label htmlFor="shadows"><FaAdjust /></label>
+          <label htmlFor="shading"><FaAdjust /></label>
           <input
             type="checkbox"
-            checked={shadows}
-            onChange={() => setShadows(!shadows)}
+            checked={shading}
+            onChange={() => setShading(!shading)}
+            id="shading"
+            aria-label="Shading"
           />
         </div>
 
         <div>
-          <label htmlFor="quality"><FaArrowDown19 /></label>
+          <label htmlFor="showFPS"><FaArrowDown19 /></label>
           <input
             type="checkbox"
             checked={showFPS}
             onChange={() => setShowFPS(!showFPS)}
+            id="showFPS"
+            aria-label="Show FPS"
           />
         </div>
       </form>

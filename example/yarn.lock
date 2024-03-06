@@ -1495,8 +1495,10 @@ react-icons@^5.0.1:
   resolved "https://registry.yarnpkg.com/react-icons/-/react-icons-5.0.1.tgz#1694e11bfa2a2888cab47dcc30154ce90485feee"
   integrity sha512-WqLZJ4bLzlhmsvme6iFdgO8gfZP17rfjYEJ2m9RsZjZ+cc4k1hTzknEz63YS1MeT50kVzoa1Nz36f4BEx+Wigw==
 
-"react-raycaster@file:../src":
+react-raycaster@^0.0.0:
   version "0.0.0"
+  resolved "https://registry.yarnpkg.com/react-raycaster/-/react-raycaster-0.0.0.tgz#0bf4cff002f10c562e4579c1b550d5bb790edd03"
+  integrity sha512-mq744XTdXJQpvn8OK3b+qAx+Vg5BKdcWHnM8v38KuFyazwaq0mHImRRALpoPTW/Q3LBzigydApuVBYw6ILQ7xQ==
 
 react-refresh@^0.14.0:
   version "0.14.0"
