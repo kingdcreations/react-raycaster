@@ -1,5 +1,7 @@
 // Public types
 
+import Game from "../classes/Game"
+
 export type Tiles = { [key: number]: Tile }
 
 export type Tile = {
@@ -43,3 +45,17 @@ export type SortedSprite = Sprite & {
 }
 
 export type Doors = number[][]
+
+export type CanvasType = {
+    g: Game,
+    width: number,
+    height: number,
+    raystep?: number,
+    shading?: boolean,
+    showFPS?: boolean,
+    skybox?: string,
+    floor?: string,
+    ceiling?: string,
+    speed?: number,
+    rotSpeed?: number,
+}

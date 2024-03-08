@@ -1,9 +1,12 @@
 import { Doors, Tiles, PlayerType } from "../types/RaycastTypes"
+import MapError from "./MapError"
 
 export default class Game {
     constructor(map: number[][], tiles: Tiles, player: PlayerType, w: number, h: number) {
         this.map = map
         this.tiles = tiles
+
+        this.checkMap(JSON.parse(JSON.stringify(map)), player.x, player.y)
 
         this.pX = player.x + .5
         this.pY = player.y + .5
@@ -23,6 +26,25 @@ export default class Game {
         }
 
         this.doors = Array.from(Array(map.length), () => Array(map[0].length).fill(0));
+    }
+
+    checkMap = (m: number[][], x: number, y: number) => {
+        if (x < 0 || y < 0 || x > m.length - 1 || y > m[x].length - 1)
+            throw new MapError("Player initial position has to be in an enclosed map");
+
+        if (m[x][y] !== 0 && this.tiles[m[x][y]].type === "wall" && this.tiles[m[x][y]].collision)
+            return;
+
+        m[x][y] = 1;
+
+        //Fill Prev row
+        this.checkMap(m, x - 1, y);
+        //Fill Next row
+        this.checkMap(m, x + 1, y);
+        //Fill Prev col
+        this.checkMap(m, x, y - 1);
+        //Fill next col
+        this.checkMap(m, x, y + 1);
     }
 
     getMapType = (x: number, y: number) => {

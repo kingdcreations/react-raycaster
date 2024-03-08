@@ -1,6 +1,6 @@
 import './App.css'
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FaAdjust } from "react-icons/fa";
 import { FaArrowDown19, FaGripLinesVertical } from 'react-icons/fa6';
 
@@ -12,13 +12,14 @@ import wood from "./assets/tex/wood.png"
 import skybox from "./assets/tex/cubemap.png"
 
 import Raycaster from '../../src';
+import { Tiles } from '../../src/types/RaycastTypes';
 
 function App() {
   const [raystep, setRaystep] = useState(2)
   const [shading, setShading] = useState(true)
   const [showFPS, setShowFPS] = useState(false)
 
-  const map = [
+  const map = useMemo(() => ([
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -43,55 +44,57 @@ function App() {
     [1, 4, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-  ];
+  ]), []);
+
+  const tiles: Tiles = useMemo(() => ({
+    1: {
+      type: "wall",
+      src: obsidian,
+      collision: true,
+    },
+    2: {
+      type: "wall",
+      src: oakPlanks,
+      collision: true,
+    },
+    3: {
+      type: "sprite",
+      src: barrel,
+      collision: true,
+    },
+    4: {
+      type: "wall",
+      src: obsidian,
+      collision: true,
+    },
+    5: {
+      type: "sprite",
+      src: pillar,
+      collision: true,
+    },
+    6: {
+      type: "door",
+      src: wood,
+      collision: true,
+    }
+  }), [])
+
+  const player = useMemo(() => ({
+    x: 15,
+    y: 8,
+  }), [])
 
   return (
     <div>
       <Raycaster
-        showFPS={showFPS}
         map={map}
+        tiles={tiles}
+        player={player}
+        showFPS={showFPS}
         raystep={raystep}
-        width={1000}
-        height={600}
         floor={oakPlanks}
         skybox={skybox}
         shading={shading}
-        player={{
-          x: 15,
-          y: 8,
-        }}
-        tiles={{
-          1: {
-            type: "wall",
-            src: obsidian,
-            collision: true,
-          },
-          2: {
-            type: "wall",
-            src: oakPlanks,
-            collision: true,
-          },
-          3: {
-            type: "sprite",
-            src: barrel,
-            collision: true,
-          },
-          4: {
-            type: "wall",
-            src: obsidian,
-            collision: true,
-          },
-          5: {
-            type: "sprite",
-            src: pillar,
-            collision: true,
-          },
-          6: {
-            type: "door",
-            src: wood,
-            collision: true,
-          }
-        }}
       />
 
       <form>
