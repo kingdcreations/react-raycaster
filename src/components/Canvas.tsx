@@ -3,21 +3,26 @@ import { CanvasType, SortedSprite, Sprite } from "../types/RaycastTypes";
 
 export default function Canvas({
     g,
-    raystep = 2,
+    inputs = {
+        north: "ArrowUp",
+        east: "ArrowRight",
+        south: "ArrowDown",
+        west: "ArrowLeft",
+        action: " ",
+    },
     shading = true,
     showFPS = false,
-    width,
-    height,
+    w,
+    h,
     skybox,
     ceiling,
     floor,
     speed = 10,
     rotSpeed = 3,
+    style
 }: CanvasType) {
     const frame = useRef(0)
 
-    const w = Math.floor(width / raystep);
-    const h = Math.floor(height / raystep);
     const middle = h * 0.5;
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -409,7 +414,7 @@ export default function Canvas({
             ctx.font = "24px Arial"
             ctx.imageSmoothingEnabled = false;
         }
-    }, [ctx, raystep])
+    }, [ctx, h, w])
 
     // Tiles initialization
     useEffect(() => {
@@ -486,47 +491,19 @@ export default function Canvas({
             console.log("useEffect Inputs");
 
         const onKeyDown = (e: KeyboardEvent) => {
-            switch (e.key) {
-                case 'z':
-                    g.up = speed
-                    break;
-                case 'd':
-                    g.right = rotSpeed
-                    break;
-                case 's':
-                    g.down = -speed
-                    break;
-                case 'q':
-                    g.left = -rotSpeed
-                    break;
-                case ' ':
-                    g.action = true
-                    break;
-                default:
-                    break;
-            }
+            if (inputs.north == e.key) g.up = speed
+            else if (inputs.east == e.key) g.right = rotSpeed
+            else if (inputs.south == e.key) g.down = -speed
+            else if (inputs.west == e.key) g.left = -rotSpeed
+            else if (inputs.action == e.key) g.action = true
         }
 
         const onKeyUp = (e: KeyboardEvent) => {
-            switch (e.key) {
-                case 'z':
-                    g.up = 0
-                    break;
-                case 'd':
-                    g.right = 0
-                    break;
-                case 's':
-                    g.down = 0
-                    break;
-                case 'q':
-                    g.left = 0
-                    break;
-                case ' ':
-                    g.action = false
-                    break;
-                default:
-                    break;
-            }
+            if (inputs.north == e.key) g.up = 0
+            else if (inputs.east == e.key) g.right = 0
+            else if (inputs.south == e.key) g.down = 0
+            else if (inputs.west == e.key) g.left = 0
+            else if (inputs.action == e.key) g.action = false
         }
 
         addEventListener('keydown', onKeyDown)
@@ -536,7 +513,7 @@ export default function Canvas({
             removeEventListener('keydown', onKeyDown)
             removeEventListener('keyup', onKeyUp)
         }
-    }, [g, rotSpeed, speed])
+    }, [g, inputs, rotSpeed, speed])
 
     return (
         <canvas
@@ -544,9 +521,8 @@ export default function Canvas({
             height={h}
             ref={canvasRef}
             style={{
-                width,
-                height,
-                imageRendering: "pixelated"
+                imageRendering: "pixelated",
+                ...style
             }} />
     )
 }

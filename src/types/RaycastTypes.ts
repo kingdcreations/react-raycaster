@@ -1,5 +1,6 @@
 // Public types
 
+import { CanvasHTMLAttributes } from "react"
 import Game from "../classes/Game"
 
 export type Tiles = { [key: number]: Tile }
@@ -16,13 +17,20 @@ export type PlayerType = {
     rotation?: number
 }
 
+export type Inputs = {
+    north: string | string[],
+    east: string | string[],
+    south: string | string[],
+    west: string | string[],
+    action: string | string[],
+}
+
 export type RaycastType = {
     map: number[][],
     tiles: Tiles,
     player: PlayerType,
     width?: number,
     height?: number,
-    raystep?: number,
     shading?: boolean,
     showFPS?: boolean,
     skybox?: string,
@@ -30,7 +38,8 @@ export type RaycastType = {
     ceiling?: string,
     speed?: number,
     rotSpeed?: number,
-}
+    inputs?: Inputs
+} & CanvasHTMLAttributes<HTMLCanvasElement>
 
 // Private types
 
@@ -48,9 +57,8 @@ export type Doors = number[][]
 
 export type CanvasType = {
     g: Game,
-    width: number,
-    height: number,
-    raystep?: number,
+    w: number,
+    h: number,
     shading?: boolean,
     showFPS?: boolean,
     skybox?: string,
@@ -58,4 +66,5 @@ export type CanvasType = {
     ceiling?: string,
     speed?: number,
     rotSpeed?: number,
-}
+    inputs?: Inputs
+} & CanvasHTMLAttributes<HTMLCanvasElement>

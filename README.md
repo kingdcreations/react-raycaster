@@ -1,7 +1,7 @@
 [![banner](https://github.com/kingdcreations/react-raycaster/blob/main/docs/thumbnail.png?raw=true)](https://thais-marcon.com/raycasting)
 
 # React Raycaster (react-raycaster)
-[![npm version](https://badge.fury.io/js/react-raycaster.svg)](https://badge.fury.io/js/react-raycaster)
+[![NPM Version](https://img.shields.io/npm/v/react-raycaster)](https://www.npmjs.com/package/react-raycaster)
 
 A fully customizable raycaster game engine as a React component.
 
@@ -76,9 +76,9 @@ const tiles = {
 | `map`| `number[][]` | **required** | 2D map array containing tiles |
 | `tiles`| `Tiles` | **required** | Map tiles definition (See below) |
 | `player`| `Player` | **required** | Player initial values |
-| `width` | `number` | `1000` | Game width in pixels |
-| `height` | `number` | `600` | Game height in pixels |
-| `raystep` | `number > 0` | `2` | Steps per scanlines |
+| `inputs` | `Inputs` | (See below) | Sets the rotation speed |
+| `width` | `number` | `500` | Game x resolution in pixels |
+| `height` | `number` | `300` | Game y resulition in pixels |
 | `shading` | `boolean` | `true` | Allows depth shading |
 | `showFPS` | `boolean` | `false` | Displays frames per second |
 | `skybox` | `string` | `none` | Source from the skybox to display |
@@ -111,16 +111,26 @@ const tiles = {
 | `y`| `number` | **required** | Player y value on map |
 | `rotation`| `number` | `0` | Player rotation in degree |
 
+### Inputs
+
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `north`| `string` | `"ArrowUp"` | Key code for north mouvement |
+| `east`| `string` | `"ArrowRight"` | Key code for east mouvement |
+| `south`| `string` | `"ArrowDown"` | Key code for south mouvement |
+| `west`| `string` | `"ArrowLeft"` | Key code for west mouvement |
+| `action`| `string` | `" "` | Key code for action triggering |
+
 ## TODO
 
-- Add full container width
 - Add sounds
 - Add run animations
 - Add more tile types
 - Add moving sprites
 - Add different walls height
 - Add pitch and offset
-- Add a way to set custom game inputs
+- Add mobile inputs
+- Wait for textures to be loaded
 
 ## About
 

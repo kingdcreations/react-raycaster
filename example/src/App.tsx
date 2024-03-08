@@ -2,7 +2,7 @@ import './App.css'
 
 import { useMemo, useState } from 'react';
 import { FaAdjust } from "react-icons/fa";
-import { FaArrowDown19, FaGripLinesVertical } from 'react-icons/fa6';
+import { FaArrowDown19 } from 'react-icons/fa6';
 
 import obsidian from "./assets/tex/obsidian.png"
 import oakPlanks from "./assets/tex/oak_planks.png"
@@ -15,7 +15,6 @@ import Raycaster from '../../src';
 import { Tiles } from '../../src/types/RaycastTypes';
 
 function App() {
-  const [raystep, setRaystep] = useState(2)
   const [shading, setShading] = useState(true)
   const [showFPS, setShowFPS] = useState(false)
 
@@ -84,6 +83,14 @@ function App() {
     y: 8,
   }), [])
 
+  const inputs = useMemo(() => ({
+    north: "z",
+    east: "d",
+    south: "s",
+    west: "q",
+    action: " ",
+  }), [])
+
   return (
     <div>
       <Raycaster
@@ -91,26 +98,17 @@ function App() {
         tiles={tiles}
         player={player}
         showFPS={showFPS}
-        raystep={raystep}
         floor={oakPlanks}
         skybox={skybox}
         shading={shading}
+        inputs={inputs}
+        style={{
+          width: 1000,
+          height: 600,
+        }}
       />
 
       <form>
-        <div>
-          <label htmlFor="raystep"><FaGripLinesVertical /></label>
-          <input
-            min={1}
-            max={5}
-            type="range"
-            value={raystep}
-            onChange={(e) => setRaystep(parseInt(e.target.value))}
-            id="raystep"
-            aria-label="Raystep"
-          />
-        </div>
-
         <div>
           <label htmlFor="shading"><FaAdjust /></label>
           <input
