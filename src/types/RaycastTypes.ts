@@ -25,7 +25,7 @@ export type Inputs = {
     action: string | string[],
 }
 
-export type RaycastType = {
+export interface RaycastType extends CanvasHTMLAttributes<HTMLCanvasElement> {
     map: number[][],
     tiles: Tiles,
     player: PlayerType,
@@ -33,13 +33,14 @@ export type RaycastType = {
     height?: number,
     shading?: boolean,
     showFPS?: boolean,
+    bobbing?: boolean,
     skybox?: string,
     floor?: string,
     ceiling?: string,
     speed?: number,
     rotSpeed?: number,
-    inputs?: Inputs
-} & CanvasHTMLAttributes<HTMLCanvasElement>
+    inputs?: Inputs,
+}
 
 // Private types
 
@@ -55,16 +56,17 @@ export type SortedSprite = Sprite & {
 
 export type Doors = number[][]
 
-export type CanvasType = {
+export interface CanvasType extends CanvasHTMLAttributes<HTMLCanvasElement> {
     g: Game,
     w: number,
     h: number,
     shading?: boolean,
     showFPS?: boolean,
+    bobbing?: boolean,
     skybox?: string,
     floor?: string,
     ceiling?: string,
     speed?: number,
     rotSpeed?: number,
-    inputs?: Inputs
-} & CanvasHTMLAttributes<HTMLCanvasElement>
+    inputs?: Inputs,
+}

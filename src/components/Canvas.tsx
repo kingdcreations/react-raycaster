@@ -8,10 +8,11 @@ export default function Canvas({
         east: "ArrowRight",
         south: "ArrowDown",
         west: "ArrowLeft",
-        action: " ",
+        action: "Space",
     },
     shading = true,
     showFPS = false,
+    bobbing = true,
     w,
     h,
     skybox,
@@ -42,6 +43,7 @@ export default function Canvas({
 
     // Main loop
     let oTimestamp: DOMHighResTimeStamp | null = null;
+    let bobbingState = 1;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const loop = (timestamp: DOMHighResTimeStamp) => {
@@ -65,6 +67,23 @@ export default function Canvas({
             const doorStateY = g.doors[Math.floor(g.pX)][Math.floor(g.pY + g.dirY * movement)]
             if (collideY === 0 || !g.tiles[collideY].collision || doorStateY === 1)
                 g.pY += g.dirY * movement
+
+            // Bobbing
+            if (bobbing) {
+                if (bobbingState === 1) {
+                    g.posZ += 12.5 * Math.abs(movement)
+                    if (g.posZ > 20) {
+                        bobbingState = -1
+                        g.posZ = 20
+                    }
+                } else {
+                    g.posZ -= 12.5 * Math.abs(movement)
+                    if (g.posZ <= 0) {
+                        bobbingState = 1
+                        g.posZ = 0
+                    }
+                }
+            }
         }
 
         // Calculate new rotations
@@ -137,11 +156,12 @@ export default function Canvas({
                 if (transformY > 0.001) {
 
                     const spriteScreenX = Math.floor((w / 2) * (1 + transformX / transformY));
+                    const vMoveScreen = Math.floor(g.pitch + g.posZ / transformY);
 
                     // Calculate height of the sprite
                     const spriteHeight = Math.abs(Math.floor(h / transformY)); // Using 'transformY' to prevents fisheye
 
-                    const drawStartY = Math.floor(-spriteHeight / 2 + middle);
+                    const drawStartY = Math.floor(-spriteHeight / 2 + middle + vMoveScreen);
 
                     // Calculate width of the sprite
                     const spriteWidth = Math.abs(Math.floor(h / transformY));
@@ -194,8 +214,8 @@ export default function Canvas({
 
             // Calculate ray position and direction
             const camx = 2 * x / w - 1;
-            const rayDistX = g.dirX + g.planeX * camx;
-            const rayDistY = g.dirY + g.planeY * camx;
+            const rayDirX = g.dirX + g.planeX * camx;
+            const rayDirY = g.dirY + g.planeY * camx;
 
             // Box of the map we're in
             let mapX = Math.floor(g.pX);
@@ -209,8 +229,8 @@ export default function Canvas({
             let wallYOffset = 0;
 
             // Length of ray from one x or y-side to next x or y-side
-            const ddx = (rayDistX === 0) ? 1e30 : Math.abs(1 / rayDistX);
-            const ddy = (rayDistY === 0) ? 1e30 : Math.abs(1 / rayDistY);
+            const ddx = (rayDirX === 0) ? 1e30 : Math.abs(1 / rayDirX);
+            const ddy = (rayDirY === 0) ? 1e30 : Math.abs(1 / rayDirY);
             let perpWallD;
 
             // What direction to step in x or y-direction (either +1 or -1)
@@ -221,7 +241,7 @@ export default function Canvas({
             let side = 0;
 
             // Calculate step and initial sideDist
-            if (rayDistX < 0) {
+            if (rayDirX < 0) {
                 stepX = -1;
                 sideDistX = (g.pX - mapX) * ddx;
             } else {
@@ -229,7 +249,7 @@ export default function Canvas({
                 sideDistX = (mapX + 1.0 - g.pX) * ddx;
             }
 
-            if (rayDistY < 0) {
+            if (rayDirY < 0) {
                 stepY = -1;
                 sideDistY = (g.pY - mapY) * ddy;
             } else {
@@ -261,8 +281,8 @@ export default function Canvas({
                         hit = 1;
                         if (side == 1) {
                             wallYOffset = 0.5 * stepY;
-                            perpWallD = (mapY - g.pY + wallYOffset + (1 - stepY) / 2) / rayDistY;
-                            wx = g.pX + perpWallD * rayDistX;
+                            perpWallD = (mapY - g.pY + wallYOffset + (1 - stepY) / 2) / rayDirY;
+                            wx = g.pX + perpWallD * rayDirX;
                             wx -= Math.floor(wx);
                             if (sideDistY - (ddy / 2) < sideDistX) { //If ray hits offset wall
                                 if (1.0 - wx <= g.doors[mapX][mapY]) {
@@ -276,8 +296,8 @@ export default function Canvas({
                             }
                         } else {
                             wallXOffset = 0.5 * stepX;
-                            perpWallD = (mapX - g.pX + wallXOffset + (1 - stepX) / 2) / rayDistX;
-                            wx = g.pY + perpWallD * rayDistY;
+                            perpWallD = (mapX - g.pX + wallXOffset + (1 - stepX) / 2) / rayDirX;
+                            wx = g.pY + perpWallD * rayDirY;
                             wx -= Math.floor(wx);
                             if (sideDistX - (ddx / 2) < sideDistY) { //If ray hits offset wall
                                 if (1.0 - wx <= g.doors[mapX][mapY]) {
@@ -295,21 +315,21 @@ export default function Canvas({
             }
 
             // Calculate distance of perpendicular ray (Euclidean distance would give fisheye effect!)
-            if (side === 0) perpWallD = (mapX - g.pX + wallXOffset + (1 - stepX) * 0.5) / rayDistX;
-            else perpWallD = (mapY - g.pY + wallYOffset + (1 - stepY) * 0.5) / rayDistY;
+            if (side === 0) perpWallD = (mapX - g.pX + wallXOffset + (1 - stepX) * 0.5) / rayDirX;
+            else perpWallD = (mapY - g.pY + wallYOffset + (1 - stepY) * 0.5) / rayDirY;
 
             // Calculate height of line to draw on screen
             const lineHeight = Math.floor(h / perpWallD);
 
             // Calculate lowest and highest pixel to fill in current stripe
-            const drawStart = -lineHeight * 0.5 + middle;
+            const drawStart = -lineHeight * 0.5 + middle + g.pitch + (g.posZ / perpWallD);
 
             const texture = images[g.map[mapX][mapY] - 1];
 
             // Calculate value of wallX
             let wallX;
-            if (side === 0) wallX = g.pY + perpWallD * rayDistY;
-            else wallX = g.pX + perpWallD * rayDistX;
+            if (side === 0) wallX = g.pY + perpWallD * rayDirY;
+            else wallX = g.pX + perpWallD * rayDirX;
             wallX -= Math.floor(wallX);
 
             // Calculate door offset
@@ -318,8 +338,8 @@ export default function Canvas({
 
             // x coordinate on the texture
             let texX = Math.floor(wallX * texture.width);
-            if (side == 0 && rayDistX > 0) texX = texture.width - texX - 1;
-            if (side == 1 && rayDistY < 0) texX = texture.width - texX - 1;
+            if (side == 0 && rayDirX > 0) texX = texture.width - texX - 1;
+            if (side == 1 && rayDirY < 0) texX = texture.width - texX - 1;
 
             if (ctx) {
                 ctx.drawImage(texture, texX, 0, 1, texture.height, x, drawStart, 1, lineHeight);
@@ -342,21 +362,30 @@ export default function Canvas({
         if (!d) return
         if (!floorTexData && !ceilingTexData) return;
 
-        const middle = 0.5 * h;
         for (let y = 0; y < h; y++) {
-            const rayDistX0 = g.dirX - g.planeX;
-            const rayDistY0 = g.dirY - g.planeY;
-            const rayDistX1 = g.dirX + g.planeX;
-            const rayDistY1 = g.dirY + g.planeY;
+            // Whether this section is floor or ceiling
+            const isFloor = y > middle + g.pitch;
 
-            const p = Math.floor(y - middle);
-            const rowDistance = middle / p;
+            // rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
+            const rayDirX0 = g.dirX - g.planeX;
+            const rayDirY0 = g.dirY - g.planeY;
+            const rayDirX1 = g.dirX + g.planeX;
+            const rayDirY1 = g.dirY + g.planeY;
 
-            const fstepX = rowDistance * (rayDistX1 - rayDistX0) / w;
-            const fstepY = rowDistance * (rayDistY1 - rayDistY0) / w;
+            // Current y position compared to the center of the screen (the horizon)
+            const p = Math.floor(isFloor ? (y - middle - g.pitch) : (middle - y + g.pitch));
 
-            let floorX = g.pX + rowDistance * rayDistX0;
-            let floorY = g.pY + rowDistance * rayDistY0;
+            // Vertical position of the camera.
+            const camZ = isFloor ? (0.5 * h + g.posZ) : (0.5 * h - g.posZ);
+
+            // Horizontal distance from the camera to the floor for the current row.
+            const rowDistance = camZ / p;
+
+            const fstepX = rowDistance * (rayDirX1 - rayDirX0) / w;
+            const fstepY = rowDistance * (rayDirY1 - rayDirY0) / w;
+
+            let floorX = g.pX + rowDistance * rayDirX0;
+            let floorY = g.pY + rowDistance * rayDirY0;
 
             const shade = shading ? y / h : 1
             for (let x = 0; x < w; ++x) {
@@ -367,7 +396,7 @@ export default function Canvas({
                     const dataUVFloor = 4 * (y * w + x);
                     const dataUVCeiling = 4 * ((h - y - 1) * w + x);
 
-                    if (floorTexData) {
+                    if (floorTexData && isFloor) {
                         const tx = Math.floor(floorTexData.width * (floorX - cellX)) & 63;
                         const ty = Math.floor(floorTexData.height * (floorY - cellY)) & 63;
 
@@ -379,7 +408,7 @@ export default function Canvas({
                         d[dataUVFloor + 3] = 255;
                     }
 
-                    if (ceilingTexData) {
+                    if (ceilingTexData && !isFloor) {
                         const tx = Math.floor(ceilingTexData.width * (floorX - cellX)) & 63;
                         const ty = Math.floor(ceilingTexData.height * (floorY - cellY)) & 63;
 
@@ -491,19 +520,19 @@ export default function Canvas({
             console.log("useEffect Inputs");
 
         const onKeyDown = (e: KeyboardEvent) => {
-            if (inputs.north == e.key) g.up = speed
-            else if (inputs.east == e.key) g.right = rotSpeed
-            else if (inputs.south == e.key) g.down = -speed
-            else if (inputs.west == e.key) g.left = -rotSpeed
-            else if (inputs.action == e.key) g.action = true
+            if (inputs.north == e.code) g.up = speed
+            else if (inputs.east == e.code) g.right = rotSpeed
+            else if (inputs.south == e.code) g.down = -speed
+            else if (inputs.west == e.code) g.left = -rotSpeed
+            else if (inputs.action == e.code) g.action = true
         }
 
         const onKeyUp = (e: KeyboardEvent) => {
-            if (inputs.north == e.key) g.up = 0
-            else if (inputs.east == e.key) g.right = 0
-            else if (inputs.south == e.key) g.down = 0
-            else if (inputs.west == e.key) g.left = 0
-            else if (inputs.action == e.key) g.action = false
+            if (inputs.north == e.code) g.up = 0
+            else if (inputs.east == e.code) g.right = 0
+            else if (inputs.south == e.code) g.down = 0
+            else if (inputs.west == e.code) g.left = 0
+            else if (inputs.action == e.code) g.action = false
         }
 
         addEventListener('keydown', onKeyDown)
@@ -521,8 +550,8 @@ export default function Canvas({
             height={h}
             ref={canvasRef}
             style={{
+                ...style,
                 imageRendering: "pixelated",
-                ...style
             }} />
     )
 }

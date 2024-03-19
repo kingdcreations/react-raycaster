@@ -80,6 +80,7 @@ const tiles = {
 | `width` | `number` | `500` | Game x resolution in pixels |
 | `height` | `number` | `300` | Game y resulition in pixels |
 | `shading` | `boolean` | `true` | Allows depth shading |
+| `bobbing` | `boolean` | `true` | Enables run animation |
 | `showFPS` | `boolean` | `false` | Displays frames per second |
 | `skybox` | `string` | `none` | Source from the skybox to display |
 | `floor` | `string` | `none` | Source from the floor to display |
@@ -119,12 +120,11 @@ const tiles = {
 | `east`| `string` | `"ArrowRight"` | Key code for east mouvement |
 | `south`| `string` | `"ArrowDown"` | Key code for south mouvement |
 | `west`| `string` | `"ArrowLeft"` | Key code for west mouvement |
-| `action`| `string` | `" "` | Key code for action triggering |
+| `action`| `string` | `"Space"` | Key code for action triggering |
 
 ## TODO
 
 - Add sounds
-- Add run animations
 - Add more tile types
 - Add moving sprites
 - Add different walls height

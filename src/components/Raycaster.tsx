@@ -1,4 +1,4 @@
-import { CanvasHTMLAttributes, useMemo } from "react";
+import { useMemo } from "react";
 import Game from "../classes/Game";
 import { RaycastType } from "../types/RaycastTypes";
 import Canvas from "./Canvas";
@@ -10,7 +10,7 @@ export default function Raycaster({
     width = 500,
     height = 300,
     ...props
-}: RaycastType & CanvasHTMLAttributes<HTMLCanvasElement>) {
+}: RaycastType) {
     
     // Initialize game object
     const game = useMemo(() => {

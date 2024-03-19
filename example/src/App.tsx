@@ -1,7 +1,7 @@
 import './App.css'
 
 import { useMemo, useState } from 'react';
-import { FaAdjust } from "react-icons/fa";
+import { FaAdjust, FaRunning } from "react-icons/fa";
 import { FaArrowDown19 } from 'react-icons/fa6';
 
 import obsidian from "./assets/tex/obsidian.png"
@@ -16,6 +16,7 @@ import { Tiles } from '../../src/types/RaycastTypes';
 
 function App() {
   const [shading, setShading] = useState(true)
+  const [bobbing, setBobbing] = useState(true)
   const [showFPS, setShowFPS] = useState(false)
 
   const map = useMemo(() => ([
@@ -84,11 +85,11 @@ function App() {
   }), [])
 
   const inputs = useMemo(() => ({
-    north: "z",
-    east: "d",
-    south: "s",
-    west: "q",
-    action: " ",
+    north: "KeyW",
+    east: "KeyD",
+    south: "KeyS",
+    west: "KeyA",
+    action: "Space",
   }), [])
 
   return (
@@ -102,6 +103,7 @@ function App() {
         skybox={skybox}
         shading={shading}
         inputs={inputs}
+        bobbing={bobbing}
         style={{
           width: 1000,
           height: 600,
@@ -117,6 +119,17 @@ function App() {
             onChange={() => setShading(!shading)}
             id="shading"
             aria-label="Shading"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="bobbing"><FaRunning /></label>
+          <input
+            type="checkbox"
+            checked={bobbing}
+            onChange={() => setBobbing(!bobbing)}
+            id="bobbing"
+            aria-label="Bobbing"
           />
         </div>
 

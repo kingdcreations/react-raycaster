@@ -119,6 +119,9 @@ export default class Game {
     pX: number
     pY: number
 
+    pitch = 0
+    posZ = 0;
+
     dirX: number
     dirY: number
 
