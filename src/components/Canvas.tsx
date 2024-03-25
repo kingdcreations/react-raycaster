@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { CanvasType, SortedSprite, Sprite } from "../types/RaycastTypes";
+import { isColliding } from "../functions/utils";
 
 export default function Canvas({
     g,
@@ -20,6 +21,8 @@ export default function Canvas({
     floor,
     speed = 10,
     rotSpeed = 3,
+    textures,
+    mouse = false,
     style
 }: CanvasType) {
     const frame = useRef(0)
@@ -32,7 +35,6 @@ export default function Canvas({
     const id = ctx?.createImageData(w, h);
     const d = id?.data;
 
-    const [images, setImages] = useState<HTMLImageElement[]>([])
     const [skyboxImage, setSkyboxImage] = useState<HTMLImageElement>()
 
     const [ceilingTexData, setCeilingTexData] = useState<ImageData>()
@@ -57,37 +59,67 @@ export default function Canvas({
 
         // Calculate new movements
         const movement = (g.up + g.down) * delta
-        if (movement && g.tiles) {
-            const collideX = g.map[Math.floor(g.pX + g.dirX * movement)][Math.floor(g.pY)]
-            const doorStateX = g.doors[Math.floor(g.pX + g.dirX * movement)][Math.floor(g.pY)]
-            if (collideX === 0 || !g.tiles[collideX].collision || doorStateX === 1)
+        if (movement) {
+            if (isColliding(g, g.pX + g.dirX * movement, g.pY))
                 g.pX += g.dirX * movement
-
-            const collideY = g.map[Math.floor(g.pX)][Math.floor(g.pY + g.dirY * movement)]
-            const doorStateY = g.doors[Math.floor(g.pX)][Math.floor(g.pY + g.dirY * movement)]
-            if (collideY === 0 || !g.tiles[collideY].collision || doorStateY === 1)
+            if (isColliding(g, g.pX, g.pY + g.dirY * movement))
                 g.pY += g.dirY * movement
 
             // Bobbing
             if (bobbing) {
-                if (bobbingState === 1) {
-                    g.posZ += 12.5 * Math.abs(movement)
-                    if (g.posZ > 20) {
-                        bobbingState = -1
-                        g.posZ = 20
-                    }
-                } else {
-                    g.posZ -= 12.5 * Math.abs(movement)
-                    if (g.posZ <= 0) {
-                        bobbingState = 1
-                        g.posZ = 0
-                    }
+                g.posZ += bobbingState * 20 * Math.abs(movement)
+                if (bobbingState === 1 && g.posZ > 40) {
+                    bobbingState = -1
+                    g.posZ = 40
+                } else if (g.posZ <= 0) {
+                    bobbingState = 1
+                    g.posZ = 0
                 }
             }
         }
 
+        const strafe = (g.left + g.right) * delta
+        if (strafe) {
+            if (isColliding(g, g.pX + g.planeX * strafe, g.pY))
+                g.pX += g.planeX * strafe
+            if (isColliding(g, g.pX, g.pY + g.planeY * strafe))
+                g.pY += g.planeY * strafe
+        }
+
+        if (!movement && bobbing && g.posZ !== 0) {
+            if (g.posZ > 0)
+                g.posZ -= 3
+            else {
+                g.posZ = 0
+                bobbingState = 1
+            }
+        }
+
+        if (g.movementY) {
+            g.pitch -= g.movementY * delta * 15
+            if (g.pitch > middle)
+                g.pitch = middle
+            else if (g.pitch < -middle)
+                g.pitch = -middle
+            g.movementY = 0
+        }
+
+        if (g.movementX) {
+            const rotation = -g.movementX / 15 * delta
+            if (rotation) {
+                const olddirX = g.dirX;
+                g.dirX = g.dirX * Math.cos(rotation) - g.dirY * Math.sin(rotation);
+                g.dirY = olddirX * Math.sin(rotation) + g.dirY * Math.cos(rotation);
+                const oldplaneX = g.planeX;
+                g.planeX = g.planeX * Math.cos(rotation) - g.planeY * Math.sin(rotation);
+                g.planeY = oldplaneX * Math.sin(rotation) + g.planeY * Math.cos(rotation);
+            }
+            g.movementX = 0
+        }
+
+
         // Calculate new rotations
-        const rotation = -(g.left + g.right) * delta
+        const rotation = -(g.cameraL + g.cameraR) * delta
         if (rotation) {
             const olddirX = g.dirX;
             g.dirX = g.dirX * Math.cos(rotation) - g.dirY * Math.sin(rotation);
@@ -123,14 +155,14 @@ export default function Canvas({
         const pan = Math.floor(angle * w * 2);
 
         if (ctx) {
-            ctx.drawImage(skyboxImage, 0, 0, skyboxImage.width, skyboxImage.height / 2, pan, 0, skyWidth, middle);
-            ctx.drawImage(skyboxImage, 0, 0, skyboxImage.width, skyboxImage.height / 2, pan - skyWidth, 0, skyWidth, middle);
+            ctx.drawImage(skyboxImage, 0, 0, skyboxImage.width, skyboxImage.height, pan, -middle + g.pitch, skyWidth, h);
+            ctx.drawImage(skyboxImage, 0, 0, skyboxImage.width, skyboxImage.height, pan - skyWidth, -middle + g.pitch, skyWidth, h);
         }
     }
 
     // TODO: Add depth shadow effect
     const spritecast = () => {
-        if (!images) return
+        if (!textures) return
 
         const sortedSprites: SortedSprite[] = []
         sprites.forEach((s, i) => {
@@ -174,7 +206,8 @@ export default function Canvas({
                     if (drawStartX < -spriteWidth) drawStartX = -spriteWidth;
                     if (drawEndX > w + spriteWidth) drawEndX = drawEndX = w + spriteWidth;
 
-                    const tex = images[s.tile]
+                    const tex = textures[s.tile]
+                    if (!tex) return
 
                     // Loop through every vertical stripe of the sprite on screen
                     for (let stripe = drawStartX; stripe <= drawEndX; stripe++) {
@@ -201,7 +234,7 @@ export default function Canvas({
                         let drawWidth = clipEndX - clipStartX;
                         if (drawWidth < 0) drawWidth = 0;
 
-                        ctx.drawImage(images[s.tile], drawStartX, 0, drawEndX, tex.height, clipStartX, drawStartY, drawWidth, spriteHeight);
+                        ctx.drawImage(textures[s.tile], drawStartX, 0, drawEndX, tex.height, clipStartX, drawStartY, drawWidth, spriteHeight);
                     }
                 }
             })
@@ -324,7 +357,7 @@ export default function Canvas({
             // Calculate lowest and highest pixel to fill in current stripe
             const drawStart = -lineHeight * 0.5 + middle + g.pitch + (g.posZ / perpWallD);
 
-            const texture = images[g.map[mapX][mapY] - 1];
+            const texture = textures && textures[g.map[mapX][mapY] - 1];
 
             // Calculate value of wallX
             let wallX;
@@ -336,21 +369,28 @@ export default function Canvas({
             if (g.tiles && g.tiles[g.map[mapX][mapY]].type === "door")
                 wallX += g.doors[mapX][mapY];
 
-            // x coordinate on the texture
-            let texX = Math.floor(wallX * texture.width);
-            if (side == 0 && rayDirX > 0) texX = texture.width - texX - 1;
-            if (side == 1 && rayDirY < 0) texX = texture.width - texX - 1;
-
             if (ctx) {
-                ctx.drawImage(texture, texX, 0, 1, texture.height, x, drawStart, 1, lineHeight);
+                ctx.save()
+
+                if (texture) {
+                    // x coordinate on the texture
+                    let texX = Math.floor(wallX * texture.width);
+                    if (side == 0 && rayDirX > 0) texX = texture.width - texX - 1;
+                    if (side == 1 && rayDirY < 0) texX = texture.width - texX - 1;
+                    ctx.drawImage(texture, texX, 0, 1, texture.height, x, drawStart, 1, lineHeight);
+                }
+                else {
+                    ctx.fillStyle = "black";
+                    ctx.fillRect(x, drawStart, 1, lineHeight);
+                }
 
                 if (shading) {
-                    ctx.save()
                     const shade = perpWallD * 0.020 + side / 10;
                     ctx.fillStyle = "rgba(0, 0, 0, " + shade + ")";
                     ctx.fillRect(x, drawStart, 1, lineHeight);
-                    ctx.restore()
                 }
+
+                ctx.restore()
             }
 
             // Set the zbuffer for the sprite casting
@@ -376,7 +416,7 @@ export default function Canvas({
             const p = Math.floor(isFloor ? (y - middle - g.pitch) : (middle - y + g.pitch));
 
             // Vertical position of the camera.
-            const camZ = isFloor ? (0.5 * h + g.posZ) : (0.5 * h - g.posZ);
+            const camZ = isFloor ? (middle + g.posZ) : (middle - g.posZ);
 
             // Horizontal distance from the camera to the floor for the current row.
             const rowDistance = camZ / p;
@@ -387,14 +427,14 @@ export default function Canvas({
             let floorX = g.pX + rowDistance * rayDirX0;
             let floorY = g.pY + rowDistance * rayDirY0;
 
-            const shade = shading ? y / h : 1
+            const shade = shading ? (y - g.pitch) / h : 1
             for (let x = 0; x < w; ++x) {
                 if (p > 0) {
                     const cellX = Math.floor(floorX);
                     const cellY = Math.floor(floorY);
 
                     const dataUVFloor = 4 * (y * w + x);
-                    const dataUVCeiling = 4 * ((h - y - 1) * w + x);
+                    const dataUVCeiling = 4 * (y * w + x);
 
                     if (floorTexData && isFloor) {
                         const tx = Math.floor(floorTexData.width * (floorX - cellX)) & 63;
@@ -406,17 +446,15 @@ export default function Canvas({
                         d[dataUVFloor + 1] = floorTexData.data[tUv + 1] * shade;
                         d[dataUVFloor + 2] = floorTexData.data[tUv + 2] * shade;
                         d[dataUVFloor + 3] = 255;
-                    }
-
-                    if (ceilingTexData && !isFloor) {
-                        const tx = Math.floor(ceilingTexData.width * (floorX - cellX)) & 63;
-                        const ty = Math.floor(ceilingTexData.height * (floorY - cellY)) & 63;
+                    } else if (ceilingTexData && !isFloor) {
+                        const tx = Math.floor(ceilingTexData.width * (floorX - cellX)) & (ceilingTexData.width - 1);
+                        const ty = Math.floor(ceilingTexData.height * (floorY - cellY)) & (ceilingTexData.height - 1);
 
                         const tUv = 4 * (ceilingTexData.width * ty + tx);
 
-                        d[dataUVCeiling + 0] = ceilingTexData.data[tUv + 0] * shade;
-                        d[dataUVCeiling + 1] = ceilingTexData.data[tUv + 1] * shade;
-                        d[dataUVCeiling + 2] = ceilingTexData.data[tUv + 2] * shade;
+                        d[dataUVCeiling + 0] = ceilingTexData.data[tUv + 0] * (1 - shade);
+                        d[dataUVCeiling + 1] = ceilingTexData.data[tUv + 1] * (1 - shade);
+                        d[dataUVCeiling + 2] = ceilingTexData.data[tUv + 2] * (1 - shade);
                         d[dataUVCeiling + 3] = 255;
                     }
                 }
@@ -426,6 +464,25 @@ export default function Canvas({
         }
         if (id) ctx?.putImageData(id, 0, 0);
     }
+
+    useEffect(() => {
+        if (!mouse) return
+
+        const moveCamera = (e: MouseEvent) => {
+            g.movementX = e.movementX
+            g.movementY = e.movementY
+        }
+        const pointerLock = () => canvasRef.current?.requestPointerLock();
+
+        canvasRef.current?.addEventListener("mousemove", moveCamera)
+        canvasRef.current?.addEventListener("click", pointerLock);
+
+        const destructor = () => {
+            canvasRef.current?.removeEventListener("mousemove", moveCamera)
+            canvasRef.current?.removeEventListener("click", pointerLock);
+        }
+        return destructor
+    }, [g, middle, mouse])
 
     // Main loop initialization
     useEffect(() => {
@@ -444,22 +501,6 @@ export default function Canvas({
             ctx.imageSmoothingEnabled = false;
         }
     }, [ctx, h, w])
-
-    // Tiles initialization
-    useEffect(() => {
-        if (g.tiles) {
-            const tilesArray = Object.values(g.tiles)
-            const imgArr = new Array(tilesArray.length);
-            tilesArray.forEach((o, i) => {
-                const image = new Image();
-                image.onload = () => imgArr[i] = image
-                image.crossOrigin = "Anonymous";
-                image.src = o.src;
-            })
-            setImages(imgArr)
-        }
-        else setImages([]);
-    }, [g.tiles])
 
     // Skybox initialization
     useEffect(() => {
@@ -520,19 +561,23 @@ export default function Canvas({
             console.log("useEffect Inputs");
 
         const onKeyDown = (e: KeyboardEvent) => {
-            if (inputs.north == e.code) g.up = speed
-            else if (inputs.east == e.code) g.right = rotSpeed
-            else if (inputs.south == e.code) g.down = -speed
-            else if (inputs.west == e.code) g.left = -rotSpeed
-            else if (inputs.action == e.code) g.action = true
+            if (inputs.north === e.code) g.up = speed
+            else if (inputs.east === e.code) g.right = speed
+            else if (inputs.south === e.code) g.down = -speed
+            else if (inputs.west === e.code) g.left = -speed
+            else if (inputs.cameraL === e.code) g.cameraL = -rotSpeed
+            else if (inputs.cameraR === e.code) g.cameraR = rotSpeed
+            else if (inputs.action === e.code) g.action = true
         }
 
         const onKeyUp = (e: KeyboardEvent) => {
-            if (inputs.north == e.code) g.up = 0
-            else if (inputs.east == e.code) g.right = 0
-            else if (inputs.south == e.code) g.down = 0
-            else if (inputs.west == e.code) g.left = 0
-            else if (inputs.action == e.code) g.action = false
+            if (inputs.north === e.code) g.up = 0
+            else if (inputs.east === e.code) g.right = 0
+            else if (inputs.south === e.code) g.down = 0
+            else if (inputs.west === e.code) g.left = 0
+            else if (inputs.cameraL === e.code) g.cameraL = 0
+            else if (inputs.cameraR === e.code) g.cameraR = 0
+            else if (inputs.action === e.code) g.action = false
         }
 
         addEventListener('keydown', onKeyDown)
@@ -551,6 +596,7 @@ export default function Canvas({
             ref={canvasRef}
             style={{
                 ...style,
+                cursor: "pointer",
                 imageRendering: "pixelated",
             }} />
     )

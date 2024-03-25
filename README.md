@@ -76,6 +76,7 @@ const tiles = {
 | `map`| `number[][]` | **required** | 2D map array containing tiles |
 | `tiles`| `Tiles` | **required** | Map tiles definition (See below) |
 | `player`| `Player` | **required** | Player initial values |
+| `mouse`| `boolean` | `false` | Allows mouse camera rotation |
 | `inputs` | `Inputs` | (See below) | Sets the rotation speed |
 | `width` | `number` | `500` | Game x resolution in pixels |
 | `height` | `number` | `300` | Game y resulition in pixels |
@@ -120,6 +121,8 @@ const tiles = {
 | `east`| `string` | `"ArrowRight"` | Key code for east mouvement |
 | `south`| `string` | `"ArrowDown"` | Key code for south mouvement |
 | `west`| `string` | `"ArrowLeft"` | Key code for west mouvement |
+| `cameraL`| `string` | `undefined` | Key code for left camera rotation |
+| `cameraR`| `string` | `undefined` | Key code for right camera rotation |
 | `action`| `string` | `"Space"` | Key code for action triggering |
 
 ## TODO
@@ -128,9 +131,7 @@ const tiles = {
 - Add more tile types
 - Add moving sprites
 - Add different walls height
-- Add pitch and offset
 - Add mobile inputs
-- Wait for textures to be loaded
 
 ## About
 

@@ -90,11 +90,14 @@ function App() {
     south: "KeyS",
     west: "KeyA",
     action: "Space",
+    cameraL: "KeyQ",
+    cameraR: "KeyE",
   }), [])
 
   return (
     <div>
       <Raycaster
+        mouse
         map={map}
         tiles={tiles}
         player={player}
@@ -105,8 +108,9 @@ function App() {
         inputs={inputs}
         bobbing={bobbing}
         style={{
-          width: 1000,
-          height: 600,
+          width: "100%",
+          aspectRatio: 10/6,
+          maxWidth: 1000,
         }}
       />
 

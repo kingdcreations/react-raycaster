@@ -113,6 +113,11 @@ export default class Game {
     left = 0
     down = 0
     right = 0
+    cameraL = 0
+    cameraR = 0
+
+    movementX = 0
+    movementY = 0
 
     action = false
 

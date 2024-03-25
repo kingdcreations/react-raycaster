@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Game from "../classes/Game";
 import { RaycastType } from "../types/RaycastTypes";
 import Canvas from "./Canvas";
@@ -11,7 +11,7 @@ export default function Raycaster({
     height = 300,
     ...props
 }: RaycastType) {
-    
+
     // Initialize game object
     const game = useMemo(() => {
         try {
@@ -21,9 +21,28 @@ export default function Raycaster({
         }
     }, [map, tiles, player, width, height])
 
+    const [textures, setTextures] = useState<HTMLImageElement[]>()
+
+    // Tiles initialization
+    useEffect(() => {
+        if (tiles) {
+            const tilesArray = Object.values(tiles)
+            const imgArr = new Array(tilesArray.length);
+            tilesArray.forEach((o, i) => {
+                const image = new Image();
+                imgArr[i] = null
+                image.onload = () => imgArr[i] = image
+                image.crossOrigin = "Anonymous";
+                image.src = o.src;
+            })
+
+            setTextures(imgArr)
+        }
+    }, [tiles])
+
     if (!game) return null
 
     return (
-        <Canvas g={game} w={width} h={height} {...props} />
+        <Canvas g={game} w={width} h={height} textures={textures} {...props} />
     )
 }

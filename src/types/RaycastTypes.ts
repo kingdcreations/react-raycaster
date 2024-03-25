@@ -18,11 +18,13 @@ export type PlayerType = {
 }
 
 export type Inputs = {
-    north: string | string[],
-    east: string | string[],
-    south: string | string[],
-    west: string | string[],
-    action: string | string[],
+    north: string,
+    east: string,
+    south: string,
+    west: string,
+    action: string,
+    cameraL?: string,
+    cameraR?: string,
 }
 
 export interface RaycastType extends CanvasHTMLAttributes<HTMLCanvasElement> {
@@ -40,6 +42,7 @@ export interface RaycastType extends CanvasHTMLAttributes<HTMLCanvasElement> {
     speed?: number,
     rotSpeed?: number,
     inputs?: Inputs,
+    mouse?: boolean
 }
 
 // Private types
@@ -69,4 +72,6 @@ export interface CanvasType extends CanvasHTMLAttributes<HTMLCanvasElement> {
     speed?: number,
     rotSpeed?: number,
     inputs?: Inputs,
+    textures?: HTMLImageElement[],
+    mouse?: boolean
 }
