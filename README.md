@@ -21,7 +21,7 @@ yarn add react-raycaster
 
 ## How to use
 
-```js
+```jsx
 import Raycaster from "react-raycaster";
 
 // ...
@@ -69,6 +69,33 @@ const tiles = {
 />
 ```
 
+### Using the game context
+
+```jsx
+import Raycaster from "react-raycaster";
+import { Joystick } from 'react-joystick-component';
+
+// ...
+
+<Raycaster
+  map={map}
+  tiles={tiles}
+  player={player}
+>
+  {g =>
+    <>
+      <Joystick
+        move={(e) => e.x && e.y && g.joystickMove(e.x, e.y)}
+        stop={() => g.joystickMove(0, 0)} />
+
+      <Joystick
+        move={(e) => {e.x && e.y && g.joystickCamera(e.x)}}
+        stop={() => g.joystickCamera(0)} />
+    </>
+  }
+</Raycaster>
+```
+
 ## Props
 
 | Prop | Type | Default | Description |
@@ -88,6 +115,13 @@ const tiles = {
 | `ceiling` | `string` | `none` | Source from the ceiling to display |
 | `speed` | `number` | `20` | Sets movement speed |
 | `rotSpeed` | `number` | `3` | Sets the rotation speed |
+
+## Game context
+
+| Method | Description |
+|---|---|
+| `joystickMove(x: number, y: number)` | Changes player x and y position on the map |
+| `joystickCamera(x: number)` | Rotates camera / player view |
 
 ## Types
 
