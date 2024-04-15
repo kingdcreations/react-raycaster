@@ -165,7 +165,6 @@ import { Joystick } from 'react-joystick-component';
 - Add more tile types
 - Add moving sprites
 - Add different walls height
-- Add mobile inputs
 
 ## About
 
