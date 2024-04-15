@@ -1,6 +1,6 @@
 // Public types
 
-import { CanvasHTMLAttributes } from "react"
+import { CanvasHTMLAttributes, ReactNode } from "react"
 import Game from "../classes/Game"
 
 export type Tiles = { [key: number]: Tile }
@@ -27,7 +27,7 @@ export type Inputs = {
     cameraR?: string,
 }
 
-export interface RaycastType extends CanvasHTMLAttributes<HTMLCanvasElement> {
+export interface RaycastType extends Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "children"> {
     map: number[][],
     tiles: Tiles,
     player: PlayerType,
@@ -42,7 +42,8 @@ export interface RaycastType extends CanvasHTMLAttributes<HTMLCanvasElement> {
     speed?: number,
     rotSpeed?: number,
     inputs?: Inputs,
-    mouse?: boolean
+    mouse?: boolean,
+    children?: (value: Game) => ReactNode
 }
 
 // Private types

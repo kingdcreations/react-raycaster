@@ -1,6 +1,6 @@
 @font-face {
-  font-family: Pixeled;
-  src: url(./assets/Pixeled.ttf);
+    font-family: Pixeled;
+    src: url(./assets/Pixeled.ttf);
 }
 
 html,
@@ -31,7 +31,8 @@ form {
     text-align: left;
     padding: 10px;
 }
-form div{
+
+form div {
     padding: 5px;
 }
 
@@ -43,4 +44,29 @@ footer {
     position: fixed;
     bottom: 0;
     width: 100%;
+    font-size: 10px;
+}
+
+.joystick-container {
+    overflow: hidden;
+    position: absolute;
+    opacity: .20;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+@media (min-device-width: 1366px) {
+    footer {
+        font-size: 16px;
+    }
+
+    .joystick-container {
+        display: none;
+    }
 }

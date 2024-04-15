@@ -1,6 +1,6 @@
 {
   "name": "react-raycaster",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "author": "Thais Marcon <mthais.web@gmail.com> (https://thais-marcon.com/)",
   "description": "A fully customizable raycaster game engine as a React component.",
@@ -41,17 +41,17 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@types/node": "^20.11.30",
-    "@types/react": "^18.2.70",
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.2.78",
     "@types/react-dom": "^18.2.22",
-    "@typescript-eslint/eslint-plugin": "^7.3.1",
-    "@typescript-eslint/parser": "^7.3.1",
+    "@typescript-eslint/eslint-plugin": "^7.6.0",
+    "@typescript-eslint/parser": "^7.6.0",
     "@vitejs/plugin-react": "^4.2.1",
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
     "typescript": "^5.4.3",
-    "vite": "^5.2.6",
-    "vite-plugin-dts": "^3.7.3"
+    "vite": "^5.2.8",
+    "vite-plugin-dts": "^3.8.3"
   }
 }

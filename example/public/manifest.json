@@ -1,0 +1,10 @@
+{
+    "name": "CUB3D",
+    "short_name": "CUB3D",
+    "start_url": "/raycasting",
+    "display": "fullscreen",
+    "background_color": "#000",
+    "theme_color": "#000000",
+    "description": "A raycasting game engine",
+    "orientation":  "landscape"
+}

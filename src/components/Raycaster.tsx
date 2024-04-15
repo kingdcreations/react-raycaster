@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { createContext, useEffect, useMemo, useState } from "react";
 import Game from "../classes/Game";
 import { RaycastType } from "../types/RaycastTypes";
 import Canvas from "./Canvas";
+
+const RaycasterContext = createContext<Game>(null!);
 
 export default function Raycaster({
     map,
@@ -9,6 +11,7 @@ export default function Raycaster({
     player,
     width = 500,
     height = 300,
+    children,
     ...props
 }: RaycastType) {
 
@@ -43,6 +46,13 @@ export default function Raycaster({
     if (!game) return null
 
     return (
-        <Canvas g={game} w={width} h={height} textures={textures} {...props} />
+        <RaycasterContext.Provider value={game}>
+            <Canvas g={game} w={width} h={height} textures={textures} {...props} />
+
+            {children &&
+                <RaycasterContext.Consumer>
+                    {children}
+                </RaycasterContext.Consumer>}
+        </RaycasterContext.Provider>
     )
 }

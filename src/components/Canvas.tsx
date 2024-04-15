@@ -117,7 +117,6 @@ export default function Canvas({
             g.movementX = 0
         }
 
-
         // Calculate new rotations
         const rotation = -(g.cameraL + g.cameraR) * delta
         if (rotation) {
@@ -160,7 +159,6 @@ export default function Canvas({
         }
     }
 
-    // TODO: Add depth shadow effect
     const spritecast = () => {
         if (!textures) return
 
@@ -168,7 +166,7 @@ export default function Canvas({
         sprites.forEach((s, i) => {
             sortedSprites.push({
                 ...s,
-                distance: (g.pX - sprites[i].x) * (g.pX - sprites[i].x) + (g.pY - sprites[i].y) * (g.pY - sprites[i].y)
+                distance: (g.pX - sprites[i].x) ** 2 + (g.pY - sprites[i].y) ** 2
             })
         })
 
@@ -437,8 +435,8 @@ export default function Canvas({
                     const dataUVCeiling = 4 * (y * w + x);
 
                     if (floorTexData && isFloor) {
-                        const tx = Math.floor(floorTexData.width * (floorX - cellX)) & 63;
-                        const ty = Math.floor(floorTexData.height * (floorY - cellY)) & 63;
+                        const tx = Math.floor(floorTexData.width * (floorX - cellX)) & (floorTexData.width - 1);
+                        const ty = Math.floor(floorTexData.height * (floorY - cellY)) & (floorTexData.height - 1);
 
                         const tUv = 4 * (floorTexData.width * ty + tx);
 
@@ -482,7 +480,7 @@ export default function Canvas({
             canvasRef.current?.removeEventListener("click", pointerLock);
         }
         return destructor
-    }, [g, middle, mouse])
+    }, [g, mouse])
 
     // Main loop initialization
     useEffect(() => {
@@ -500,7 +498,7 @@ export default function Canvas({
             ctx.font = "24px Arial"
             ctx.imageSmoothingEnabled = false;
         }
-    }, [ctx, h, w])
+    }, [ctx])
 
     // Skybox initialization
     useEffect(() => {
@@ -530,8 +528,8 @@ export default function Canvas({
 
     // Floor initialization
     useEffect(() => {
-        const image = new Image();
         if (floor) {
+            const image = new Image();
             image.onload = () => {
                 const c = document.createElement("canvas").getContext("2d");
                 c?.drawImage(image, 0, 0, image.width, image.height);
@@ -546,12 +544,9 @@ export default function Canvas({
     // Get sprites from map
     useEffect(() => {
         const s: Sprite[] = []
-        g.tiles && g.map.forEach((row, x) => {
-            row.forEach((tile, y) => {
-                if (g.tiles[tile]?.type === "sprite")
-                    s.push({ x: x + 0.5, y: y + 0.5, tile: tile - 1 })
-            })
-        })
+        g.tiles && g.map.forEach((row, x) =>
+            row.forEach((tile, y) => g.tiles[tile]?.type === "sprite" &&
+                s.push({ x: x + 0.5, y: y + 0.5, tile: tile - 1 })))
         setSprites(s)
     }, [g])
 

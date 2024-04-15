@@ -12,41 +12,16 @@ import wood from "./assets/tex/wood.png"
 import skybox from "./assets/tex/cubemap.png"
 
 import Raycaster from '../../src';
-import { Tiles } from '../../src/types/RaycastTypes';
+import { PlayerType, Tiles } from '../../src/types/RaycastTypes';
+import { map } from './assets/map';
+import { Joystick } from 'react-joystick-component';
 
 function App() {
   const [shading, setShading] = useState(true)
   const [bobbing, setBobbing] = useState(true)
   const [showFPS, setShowFPS] = useState(false)
 
-  const map = useMemo(() => ([
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 5, 0, 5, 0, 5, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 2, 2, 6, 2, 2, 0, 0, 0, 0, 5, 0, 5, 0, 5, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 4, 4, 4, 4, 4, 4, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 4, 0, 0, 0, 0, 2, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 4, 0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 4, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-  ]), []);
-
-  const tiles: Tiles = useMemo(() => ({
+  const tiles = useMemo((): Tiles => ({
     1: {
       type: "wall",
       src: obsidian,
@@ -63,28 +38,23 @@ function App() {
       collision: true,
     },
     4: {
-      type: "wall",
-      src: obsidian,
-      collision: true,
-    },
-    5: {
       type: "sprite",
       src: pillar,
       collision: true,
     },
-    6: {
+    5: {
       type: "door",
       src: wood,
       collision: true,
     }
   }), [])
 
-  const player = useMemo(() => ({
+  const player = useMemo((): PlayerType => ({
     x: 15,
     y: 8,
   }), [])
 
-  const inputs = useMemo(() => ({
+  const inputs = {
     north: "KeyW",
     east: "KeyD",
     south: "KeyS",
@@ -92,7 +62,7 @@ function App() {
     action: "Space",
     cameraL: "KeyQ",
     cameraR: "KeyE",
-  }), [])
+  }
 
   return (
     <div>
@@ -109,10 +79,30 @@ function App() {
         bobbing={bobbing}
         style={{
           width: "100%",
-          aspectRatio: 10/6,
+          height: "100%",
+          objectFit: "contain",
+          aspectRatio: 6 / 10,
           maxWidth: 1000,
         }}
-      />
+      >
+        {g =>
+          <div className="joystick-container">
+            <Joystick
+              size={100}
+              baseColor="grey"
+              stickColor="lightgrey"
+              move={(e) => e.x && e.y && g.joystickMove(e.x, e.y)}
+              stop={() => g.joystickMove(0, 0)} />
+
+            <Joystick
+              size={100}
+              baseColor="grey"
+              stickColor="lightgrey"
+              move={(e) => {e.x && e.y && g.joystickCamera(e.x)}}
+              stop={() => g.joystickCamera(0)} />
+          </div>
+        }
+      </Raycaster>
 
       <form>
         <div>

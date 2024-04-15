@@ -18,14 +18,23 @@ export default class Game {
         this.planeY = (w / 2) / h
 
         if (player.rotation) {
-            this.dirX = -1 * Math.cos(-player.rotation * Math.PI / 180);
-            this.dirY = -1 * Math.sin(-player.rotation * Math.PI / 180);
+            this.dirX = -Math.cos(-player.rotation * Math.PI / 180);
+            this.dirY = -Math.sin(-player.rotation * Math.PI / 180);
 
             this.planeX = -this.planeY * Math.sin(-player.rotation * Math.PI / 180);
             this.planeY = this.planeY * Math.cos(-player.rotation * Math.PI / 180);
         }
 
         this.doors = Array.from(Array(map.length), () => Array(map[0].length).fill(0));
+    }
+
+    joystickMove = (x: number, y: number) => {
+        this.up = y * 10
+        this.right = x * 10
+    }
+
+    joystickCamera = (x: number) => {
+        this.cameraL = x * 5
     }
 
     checkMap = (m: number[][], x: number, y: number) => {
